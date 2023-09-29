@@ -1,97 +1,61 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:barcode_scan2/barcode_scan2.dart';
+import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Mi Aplicación',
+      title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(),
+      home: const HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-
-  @override
-  void initState() {
-    super.initState();
-    var initializationSettingsAndroid =
-        AndroidInitializationSettings('app_icon');
-    var initializationSettingsIOS = IOSInitializationSettings(
-        onDidReceiveLocalNotification: onDidReceiveLocalNotification);
-    var initializationSettings = InitializationSettings(
-        android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
-    flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: onSelectNotification);
-  }
-
-  Future<void> _showNotification(String title, String body) async {
-    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        'your channel id', 'your channel name', 'your channel description',
-        importance: Importance.max, priority: Priority.high, ticker: 'ticker');
-    var iOSPlatformChannelSpecifics = IOSNotificationDetails();
-    var platformChannelSpecifics = NotificationDetails(
-        android: androidPlatformChannelSpecifics,
-        iOS: iOSPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.show(
-        0, title, body, platformChannelSpecifics,
-        payload: 'item x');
-  }
-
-  Future<void> _scanQRCode() async {
-    try {
-      var result = await BarcodeScanner.scan();
-      if (result.type == ResultType.Barcode) {
-        _showNotification('Código QR Leído', result.rawContent);
-      }
-    } catch (e) {
-      print(e.toString());
-    }
-  }
-
-  Future<void> onDidReceiveLocalNotification(
-      int id, String title, String body, String payload) async {
-    // Manejar notificaciones cuando la aplicación está en primer plano
-  }
-
-  Future<void> onSelectNotification(String payload) async {
-    // Manejar notificaciones cuando se hace clic en ellas
-  }
-
+class _HomePageState extends State<HomePage> {
+  String result = '';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Mi Aplicación'),
-      ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
+          mainAxisSize: MainAxisSize.min,
+          children: [
             ElevatedButton(
-              onPressed: _scanQRCode,
-              child: Text('Leer Código QR'),
+              onPressed: () async {
+                var res = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SimpleBarcodeScannerPage(),
+                    ));
+                setState(() {
+                  if (res is String) {
+                    result = res;
+                  }
+                });
+              },
+              child: const Text('Open Scanner'),
             ),
+            Text('Barcode Result: $result'),
           ],
         ),
       ),
     );
   }
 }
-
